@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:theft_detecting_system/features/all_widgets/custom_appbar.dart';
+import 'package:theft_detecting_system/features/auth/presentation/providers/auth_provider.dart';
+import 'package:theft_detecting_system/features/auth/presentation/pages/authentication_page.dart';
 import 'package:theft_detecting_system/features/home/presentation/widgets/custom_drawer.dart';
 
 class AccountPage extends StatefulWidget {
@@ -16,74 +19,126 @@ class _AccountPageState extends State<AccountPage> {
   bool _soundAlert = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().getCurrentUser();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppbar(title: 'Account Settings'),
       drawer: CustomDrawer(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Account Information Card
-            Card(
-              color: Colors.white.withAlpha(20),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          // Redirect to authentication if not logged in
+          if (!authProvider.isAuthenticated) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacementNamed(context, AuthenticationPage.routeName);
+            });
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Account Information Card
+                Card(
+                  color: Colors.white.withAlpha(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
                       children: [
-                        const CircleAvatar(
-                          radius: 30,
-                          // Ensure this asset exists and is declared in pubspec.yaml.
-                          backgroundImage: AssetImage('assets/placeholder.png'),
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundImage: authProvider.user?.photoUrl != null
+                                  ? NetworkImage(authProvider.user!.photoUrl!)
+                                  : const AssetImage('assets/placeholder.png') as ImageProvider,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    authProvider.user?.name ?? "User",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    authProvider.user?.email ?? "user@example.com",
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                "John Doe",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              SizedBox(height: 4),
-                              Text(
-                                "john.doe@example.com",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
+                            ),
+                            onPressed: authProvider.isLoading
+                                ? null
+                                : () async {
+                                    await authProvider.signOut();
+                                    if (!authProvider.isAuthenticated) {
+                                      Navigator.pushReplacementNamed(
+                                          context, AuthenticationPage.routeName);
+                                    }
+                                  },
+                            child: authProvider.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Logout",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          // Logout logic goes here.
-                        },
-                        child: const Text(
-                          "Logout",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
+                // Error message
+                if (authProvider.error != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      authProvider.error!,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                const SizedBox(height: 20),
             // Device Management Card
             Card(
               color: Colors.white.withAlpha(30),
@@ -213,6 +268,9 @@ class _AccountPageState extends State<AccountPage> {
             ),
           ],
         ),
+      ),
+    );
+        },
       ),
     );
   }

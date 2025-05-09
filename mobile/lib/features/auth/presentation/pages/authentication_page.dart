@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:theft_detecting_system/features/auth/presentation/providers/auth_provider.dart';
+import 'package:theft_detecting_system/features/home/presentation/pages/home_page.dart';
 
 class AuthenticationPage extends StatelessWidget {
   static final String routeName = '/authentication';
@@ -8,6 +11,21 @@ class AuthenticationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        // Navigate to home if already authenticated
+        if (authProvider.isAuthenticated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacementNamed(context, HomePage.routeName);
+          });
+        }
+        
+        return _buildAuthUI(context, authProvider);
+      },
+    );
+  }
+
+  Widget _buildAuthUI(BuildContext context, AuthProvider authProvider) {
     return Scaffold(
       body: Center(
         child: Container(
@@ -60,7 +78,12 @@ class AuthenticationPage extends StatelessWidget {
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
                 ),
-                onPressed: () {},
+                onPressed: authProvider.isLoading ? null : () async {
+                  await authProvider.signInWithGoogle();
+                  if (authProvider.isAuthenticated) {
+                    Navigator.pushReplacementNamed(context, HomePage.routeName);
+                  }
+                },
                 child: Ink(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -81,16 +104,41 @@ class AuthenticationPage extends StatelessWidget {
                           width: 24,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Continue with google',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
+                        authProvider.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Continue with google',
+                                style: TextStyle(color: Colors.white, fontSize: 16),
+                              ),
                       ],
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
+              // Error message
+              if (authProvider.error != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    authProvider.error!,
+                    style: const TextStyle(color: Colors.red, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               // Grey RichText with linked text for Terms and privacy policy
               RichText(
                 textAlign: TextAlign.center,
