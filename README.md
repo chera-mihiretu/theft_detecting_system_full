@@ -15,7 +15,6 @@ The system captures video streams, processes screenshots every 10-15 seconds for
 - [Challenges and Solutions](#challenges-and-solutions)
 - [Contributors](#contributors)
 - [Acknowledgments](#acknowledgments)
-- [License](#license)
 
 ## Features
 
@@ -137,6 +136,3 @@ For detailed testing, evaluate in a controlled environment with good lighting to
 
 We thank our advisors, faculty, and the open-source community for tools like OpenCV, DeepFace, Flask, and FastAPI. This project was developed as part of the Integrated Engineering Team Project at Adama Science and Technology University.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
