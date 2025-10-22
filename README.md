@@ -1,9 +1,5 @@
 # Real-Time Human Detection and Streaming System
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/yourusername/your-repo-name/blob/main/LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/yourusername/your-repo-name.svg)](https://github.com/yourusername/your-repo-name/issues)
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/your-repo-name.svg)](https://github.com/yourusername/your-repo-name/stargazers)
-
 A low-cost, automated smart home security system developed by students at Adama Science and Technology University. This project integrates IoT hardware (ESP32 camera module) for real-time MJPEG video streaming, a Flask-based backend with OpenCV and DeepFace for facial recognition, and user-friendly web (Next.js) and mobile (Flutter) interfaces for remote monitoring and detection of known/unknown individuals.
 
 The system captures video streams, processes screenshots every 10-15 seconds for human detection, and logs results, making it ideal for affordable surveillance in homes, small offices, or retail spaces.
@@ -55,6 +51,7 @@ For a detailed diagram, refer to Appendix A in the [project report](link-to-repo
 ### Prerequisites
 - Python 3.8+
 - ESP32 board with camera module
+    ![ESP32](images/esp32.jpg)
 - Stable local Wi-Fi network
 - Node.js (for Next.js web app)
 - Flutter SDK (for mobile app)
